@@ -1,34 +1,67 @@
-const express = require('express');
-const path = require('path');
-const {open} = require('sqlite');
-const sqlite3 = require('sqlite3');
+const express = require('express')
+const {open} = require('sqlite')
+const sqlite3 = require('sqlite3')
+const path = require('path')
 const jwt = require('jsonwebtoken')
-const app = express();
+const bcrypt = require('bcrypt')
+const app = express()
+const dbPath = path.join(__dirname,"user.db")
+let db = null
 app.use(express.json())
-const dbPath = path.join(__dirname,"users.db");
-let db = null;
-const initilizeDBServer = async()=>{
+
+const initializeDBServer = async () => {
     try{
         db = await open({
-            filename : dbPath,
+            filename: dbPath,
             driver: sqlite3.Database
         })
-        app.listen(3000,()=>{
-            console.log("server is running");
-        })
+        app.listen(3000, () =>{
+        console.log("Server is running at http://localhost:3000/")
+})
+
     }
     catch(e){
-        console.log(e);
-        process.exit(1);
+        console.log(`DB Errr: ${e.message}`)
     }
 }
-initilizeDBServer()
-app.get('/user/:userid',async(req,res)=>{
-    const {userid} = req.params;
-    const createTable = `
 
-    select * from user;
+initializeDBServer()
+
+app.post('/',async (req,res) => {
+    const createQuery = `
+        CREATE TABLE user(
+        username VARCHAR(20),
+        name VARHAR(20),
+        password VARCHAR(20)
+        )
     `
-    const useArr = await db.all(createTable)
-    res.send(useArr)
+    await db.run(createQuery)
+    res.send('Table Created')
+})
+
+app.post('/users',async (req,res)=>{
+    const insertDataQuery = `
+        INSERT INTO user
+        VALUES ('aravind','Aravind','aravind@123'),
+               ('aditya','Aditya','aditya@123'),
+               ('sudharshan','Sudharshan','sudharshan@123'),
+               ('harry','Harry','harry@123'),
+               ('potter','Potter','potter@123');
+    `
+    await db.run(insertDataQuery)
+    res.send("Data is inserted")
+})
+
+app.post('/login',async (req,res)=> {
+    const {username,password} = req.body
+    const selectQuery = `
+    SELECT * FROM user
+    WHERE username=${username}
+    `
+    const dbUser = await db.run(selectQuery)
+    if(dbPath === undefined){
+        const createUserQuery = `
+         INSERT INTO user
+        `
+    }
 })
